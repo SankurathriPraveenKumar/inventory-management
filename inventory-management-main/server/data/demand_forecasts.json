@@ -79,5 +79,50 @@
     "forecasted_demand": 96,
     "trend": "stable",
     "period": "Next 30 days"
+  },
+  {
+    "id": "10",
+    "item_sku": "PCB-001",
+    "item_name": "Single Layer PCB Assembly",
+    "current_demand": 200,
+    "forecasted_demand": 380,
+    "trend": "increasing",
+    "period": "Next 30 days"
+  },
+  {
+    "id": "11",
+    "item_sku": "TMP-201",
+    "item_name": "Temperature Sensor Module",
+    "current_demand": 100,
+    "forecasted_demand": 260,
+    "trend": "increasing",
+    "period": "Next 30 days"
+  },
+  {
+    "id": "12",
+    "item_sku": "SRV-301",
+    "item_name": "Micro Servo Motor",
+    "current_demand": 30,
+    "forecasted_demand": 90,
+    "trend": "increasing",
+    "period": "Next 30 days"
+  },
+  {
+    "id": "13",
+    "item_sku": "MCU-402",
+    "item_name": "32-bit ARM Microcontroller",
+    "current_demand": 150,
+    "forecasted_demand": 340,
+    "trend": "increasing",
+    "period": "Next 30 days"
+  },
+  {
+    "id": "14",
+    "item_sku": "PRS-203",
+    "item_name": "Pressure Sensor",
+    "current_demand": 220,
+    "forecasted_demand": 195,
+    "trend": "decreasing",
+    "period": "Next 30 days"
   }
 ]

@@ -27,6 +27,55 @@
         </div>
       </div>
 
+      <!-- Submitted Orders section — shown only after restocking orders have been placed -->
+      <div class="card" v-if="submittedOrders.length > 0">
+        <div class="card-header">
+          <h3 class="card-title">{{ t('orders.submittedOrders') }}</h3>
+          <span class="badge info">{{ submittedOrders.length }}</span>
+        </div>
+        <p class="submitted-description">{{ t('orders.submittedOrdersDescription') }}</p>
+        <div class="table-container">
+          <table class="orders-table">
+            <thead>
+              <tr>
+                <th class="col-order-number">{{ t('orders.table.orderNumber') }}</th>
+                <th class="col-customer">{{ t('orders.table.customer') }}</th>
+                <th class="col-items">{{ t('orders.table.items') }}</th>
+                <th class="col-status">{{ t('orders.table.status') }}</th>
+                <th class="col-date">{{ t('orders.table.orderDate') }}</th>
+                <th class="col-date">{{ t('orders.estimatedDelivery') }}</th>
+                <th class="col-value">{{ t('orders.table.totalValue') }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="order in submittedOrders" :key="order.id">
+                <td class="col-order-number"><strong>{{ order.order_number }}</strong></td>
+                <td class="col-customer">{{ order.customer }}</td>
+                <td class="col-items">
+                  <details class="items-details">
+                    <summary class="items-summary">
+                      {{ t('orders.itemsCount', { count: order.items.length }) }}
+                    </summary>
+                    <div class="items-dropdown">
+                      <div v-for="(item, idx) in order.items" :key="idx" class="item-entry">
+                        <span class="item-name">{{ item.name }}</span>
+                        <span class="item-meta">{{ t('orders.quantity') }}: {{ item.quantity }} @ ${{ item.unit_price }}</span>
+                      </div>
+                    </div>
+                  </details>
+                </td>
+                <td class="col-status">
+                  <span class="badge info">{{ t('status.submitted') }}</span>
+                </td>
+                <td class="col-date">{{ formatDate(order.order_date) }}</td>
+                <td class="col-date">{{ formatDate(order.expected_delivery) }}</td>
+                <td class="col-value"><strong>${{ order.total_value.toLocaleString() }}</strong></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       <div class="card">
         <div class="card-header">
           <h3 class="card-title">{{ t('orders.allOrders') }} ({{ orders.length }})</h3>
@@ -95,6 +144,7 @@ export default {
     const loading = ref(true)
     const error = ref(null)
     const orders = ref([])
+    const submittedOrders = ref([])
 
     // Use shared filters
     const {
@@ -121,6 +171,18 @@ export default {
         error.value = 'Failed to load orders: ' + err.message
       } finally {
         loading.value = false
+      }
+    }
+
+    const loadSubmittedOrders = async () => {
+      try {
+        // Fetch submitted orders separately — not affected by the global status filter
+        const fetched = await api.getOrders({ status: 'Submitted' })
+        submittedOrders.value = fetched.sort((a, b) =>
+          new Date(b.order_date) - new Date(a.order_date)
+        )
+      } catch (err) {
+        console.error('Failed to load submitted orders:', err)
       }
     }
 
@@ -153,13 +215,17 @@ export default {
       })
     }
 
-    onMounted(loadOrders)
+    onMounted(() => {
+      loadOrders()
+      loadSubmittedOrders()
+    })
 
     return {
       t,
       loading,
       error,
       orders,
+      submittedOrders,
       getOrdersByStatus,
       getOrderStatusClass,
       formatDate,
@@ -275,5 +341,11 @@ export default {
 .item-meta {
   font-size: 0.813rem;
   color: #64748b;
+}
+
+.submitted-description {
+  color: #64748b;
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
 }
 </style>

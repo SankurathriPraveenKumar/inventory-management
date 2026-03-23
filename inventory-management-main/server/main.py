@@ -120,6 +120,18 @@ class CreatePurchaseOrderRequest(BaseModel):
     expected_delivery_date: str
     notes: Optional[str] = None
 
+class OrderItem(BaseModel):
+    sku: str
+    name: str
+    quantity: int
+    unit_price: float
+
+class CreateOrderRequest(BaseModel):
+    customer: str
+    items: List[OrderItem]
+    warehouse: Optional[str] = None
+    category: Optional[str] = None
+
 # API endpoints
 @app.get("/")
 def root():
@@ -160,6 +172,43 @@ def get_order(order_id: str):
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
     return order
+
+@app.post("/api/orders", response_model=Order, status_code=201)
+def create_order(request: CreateOrderRequest):
+    """Create a new restocking order with status Submitted"""
+    import uuid
+    from datetime import datetime, timedelta
+
+    new_id = str(uuid.uuid4())
+    order_number = f"RST-{datetime.now().year}-{len(orders) + 1:04d}"
+
+    # Calculate expected delivery: 10 business days from today (Mon–Fri only)
+    order_date = datetime.now()
+    business_days_added = 0
+    delivery_date = order_date
+    while business_days_added < 10:
+        delivery_date += timedelta(days=1)
+        if delivery_date.weekday() < 5:
+            business_days_added += 1
+
+    items_list = [item.dict() for item in request.items]
+    total_value = round(sum(i["quantity"] * i["unit_price"] for i in items_list), 2)
+
+    new_order = {
+        "id": new_id,
+        "order_number": order_number,
+        "customer": request.customer,
+        "items": items_list,
+        "status": "Submitted",
+        "warehouse": request.warehouse,
+        "category": request.category,
+        "order_date": order_date.isoformat(),
+        "expected_delivery": delivery_date.isoformat(),
+        "total_value": total_value,
+        "actual_delivery": None
+    }
+    orders.append(new_order)
+    return new_order
 
 @app.get("/api/demand", response_model=List[DemandForecast])
 def get_demand_forecasts():
